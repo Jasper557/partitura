@@ -8,7 +8,7 @@ import { Page } from './types'
 
 const AppContent: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>('sheet-music')
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true)
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false)
 
   const renderPage = () => {
     switch (currentPage) {

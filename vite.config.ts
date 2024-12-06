@@ -1,10 +1,21 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
+import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 export default defineConfig({
-  plugins: [react()],
-  base: process.env.VITE_DEV_SERVER_URL ? '/' : './',
+  plugins: [
+    react(),
+    viteStaticCopy({
+      targets: [
+        {
+          src: 'node_modules/pdfjs-dist/build/pdf.worker.min.js',
+          dest: ''
+        }
+      ]
+    })
+  ],
+  base: './',
   build: {
     outDir: 'dist',
     emptyOutDir: true,
