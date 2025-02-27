@@ -11,7 +11,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // Determine if we're in Electron and development mode
 const isElectron = window.electron?.isElectron
 const isDev = import.meta.env.DEV
-const baseUrl = isDev ? '' : '/partitura'
+const baseUrl = isDev ? 'http://localhost:5173' : 'https://jasper557.github.io/partitura'
 
 // Create Supabase client with appropriate configuration
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -26,9 +26,10 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
   global: {
     headers: {
+      'x-client-info': 'partitura',
       'x-redirect-to': isElectron 
         ? (isDev ? 'http://localhost:5173/auth/callback' : 'app://./auth/callback') 
-        : `${window.location.origin}${baseUrl}/auth/callback`
+        : `${baseUrl}/auth/callback`
     }
   }
 })
