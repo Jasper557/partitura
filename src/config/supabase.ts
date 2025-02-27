@@ -11,7 +11,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // Determine if we're in Electron and development mode
 const isElectron = window.electron?.isElectron
 const isDev = import.meta.env.DEV
+
+// Configure auth URLs
 const site = isDev ? 'http://localhost:5173' : 'https://jasper557.github.io/partitura'
+const redirectTo = `${site}${isDev ? '' : '/partitura'}`
 
 // Create Supabase client with appropriate configuration
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -27,7 +30,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   global: {
     headers: {
       'x-client-info': 'partitura',
-      'x-site-url': site
+      'x-site-url': site,
+      'x-redirect-to': redirectTo
     }
   }
 })
