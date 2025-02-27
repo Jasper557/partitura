@@ -4,7 +4,7 @@ import path from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: './',
+  base: '/partitura/',
   plugins: [react()],
   resolve: {
     alias: {
@@ -22,9 +22,9 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: undefined,
-        assetFileNames: 'assets/[name][extname]',
-        chunkFileNames: 'assets/[name].js',
-        entryFileNames: 'assets/[name].js',
+        assetFileNames: 'assets/[name].[hash][extname]',
+        chunkFileNames: 'assets/[name].[hash].js',
+        entryFileNames: 'assets/[name].[hash].js',
       }
     }
   },
