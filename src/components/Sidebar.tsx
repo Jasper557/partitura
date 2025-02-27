@@ -1,5 +1,5 @@
 import React from 'react'
-import { Music, BookOpen, Calendar, Sun, Moon } from 'lucide-react'
+import { Music, BookOpen, Calendar, Settings } from 'lucide-react'
 import NavItem from './NavItem'
 import { useTheme } from '../context/ThemeContext'
 import { SidebarProps } from '../types'
@@ -10,7 +10,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   isExpanded, 
   onExpandedChange 
 }) => {
-  const { isDarkMode, toggleTheme } = useTheme()
+  const { isDarkMode } = useTheme()
   const toggleSidebar = () => onExpandedChange(!isExpanded)
 
   return (
@@ -104,43 +104,16 @@ const Sidebar: React.FC<SidebarProps> = ({
         p-4 
         ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-200'}
         border-t
-        transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]
       `}>
-        <button
-          onClick={toggleTheme}
-          className={`
-            p-2 rounded-lg focus:outline-none
-            w-full flex items-center justify-center
-            transition-all duration-300
-            ${isDarkMode
-              ? 'hover:bg-gray-700 text-gray-300'
-              : 'hover:bg-gray-100 text-gray-600'
-            }
-          `}
-          aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-        >
-          {isDarkMode ? (
-            <>
-              <Sun size={20} className="transition-transform duration-300 hover:scale-110" />
-              <div className={`
-                overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]
-                ${isExpanded ? 'w-20 ml-3' : 'w-0'}
-              `}>
-                <span className="whitespace-nowrap">Light Mode</span>
-              </div>
-            </>
-          ) : (
-            <>
-              <Moon size={20} className="transition-transform duration-300 hover:scale-110" />
-              <div className={`
-                overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]
-                ${isExpanded ? 'w-20 ml-3' : 'w-0'}
-              `}>
-                <span className="whitespace-nowrap">Dark Mode</span>
-              </div>
-            </>
-          )}
-        </button>
+        <ul className="list-none">
+          <NavItem 
+            icon={<Settings size={24} />} 
+            text="Settings" 
+            isExpanded={isExpanded}
+            isActive={currentPage === 'settings'}
+            onClick={() => onNavigate('settings')}
+          />
+        </ul>
       </div>
     </aside>
   )

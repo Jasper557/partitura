@@ -5,6 +5,13 @@ import { NavItemProps } from '../types'
 const NavItem: React.FC<NavItemProps> = ({ icon, text, isExpanded, isActive = false, onClick }) => {
   const { isDarkMode } = useTheme()
 
+  const getIconAnimation = () => {
+    if (text === 'Settings') {
+      return 'transition-transform duration-300 group-hover:rotate-180'
+    }
+    return 'transition-transform duration-300 group-hover:scale-125'
+  }
+
   return (
     <li>
       <button 
@@ -23,9 +30,13 @@ const NavItem: React.FC<NavItemProps> = ({ icon, text, isExpanded, isActive = fa
                 : 'text-gray-600 hover:bg-gray-50 hover:text-blue-600'
               } focus:ring-blue-200`
           }
+          group
         `}
       >
-        <span className="inline-flex justify-center items-center w-8 h-8">
+        <span className={`
+          inline-flex justify-center items-center w-8 h-8
+          ${getIconAnimation()}
+        `}>
           {icon}
         </span>
         {isExpanded && (
