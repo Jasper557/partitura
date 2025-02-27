@@ -98,7 +98,9 @@ const Settings: React.FC = () => {
                   className="w-12 h-12 rounded-full object-cover bg-gray-200"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src = '/assets/default-avatar.png';
+                    target.src = import.meta.env.DEV 
+                      ? '/assets/default-avatar.png'
+                      : '/partitura/assets/default-avatar.png';
                   }}
                 />
               ) : (

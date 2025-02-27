@@ -18,20 +18,22 @@ const Login: React.FC = () => {
         p-8 rounded-xl shadow-lg
       `}>
         <div className="text-center">
-          <img
-            src="/assets/icon.png"
-            alt="Partitura Logo"
-            className="mx-auto h-16 w-16"
-          />
-          <h2 className={`
-            mt-6 text-3xl font-bold
-            ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}
-          `}>
-            Welcome to Partitura
-          </h2>
-          <p className={`mt-2 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            Sign in to access your sheet music from anywhere
-          </p>
+          <div className="flex flex-col items-center justify-center">
+            <img
+              className="w-32 h-32 mb-4"
+              src={import.meta.env.DEV ? '/assets/icon.png' : '/partitura/assets/icon.png'}
+              alt="Partitura Logo"
+            />
+            <h2 className={`
+              mt-6 text-3xl font-bold
+              ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}
+            `}>
+              Welcome to Partitura
+            </h2>
+            <p className={`mt-2 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              Sign in to access your sheet music from anywhere
+            </p>
+          </div>
         </div>
 
         <div className="mt-8">
