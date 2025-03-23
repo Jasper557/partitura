@@ -19,7 +19,7 @@ const Login: React.FC = () => {
       `}>
         <div className="text-center">
           <img
-            src="./assets/icon.png"
+            src="/partitura/assets/icon.png"
             alt="Partitura Logo"
             className="mx-auto h-16 w-16"
           />
