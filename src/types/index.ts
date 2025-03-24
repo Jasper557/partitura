@@ -39,4 +39,15 @@ export interface SheetMusicItem {
   pdfPath: string | File
   isFavorite: boolean
   dateAdded: Date
+}
+
+export interface PracticeEvent {
+  id: string
+  title: string
+  description: string
+  startTime: Date
+  endTime: Date
+  isCompleted: boolean
+  sheetMusicId?: string
+  color?: string
 } 

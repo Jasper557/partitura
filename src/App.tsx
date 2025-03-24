@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { ThemeProvider } from './context/ThemeContext'
 import { AuthProvider } from './context/AuthContext'
+import { ToastProvider } from './context/ToastContext'
 import MainLayout from './layouts/MainLayout'
 import SheetMusic from './pages/SheetMusic'
 import Practice from './pages/Practice'
@@ -69,10 +70,12 @@ const App: React.FC = () => {
   return (
     <AuthProvider>
       <ThemeProvider>
-        <Routes>
-          <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="*" element={<ProtectedContent />} />
-        </Routes>
+        <ToastProvider>
+          <Routes>
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="*" element={<ProtectedContent />} />
+          </Routes>
+        </ToastProvider>
       </ThemeProvider>
     </AuthProvider>
   )

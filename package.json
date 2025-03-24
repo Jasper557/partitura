@@ -25,16 +25,21 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.47.2",
+    "date-fns": "^4.1.0",
     "lucide-react": "^0.359.0",
     "pdfjs-dist": "3.11.174",
     "react": "^18.2.0",
+    "react-datepicker": "^8.2.1",
     "react-dom": "^18.2.0",
     "react-pdf": "7.5.1",
-    "react-router-dom": "^7.4.0"
+    "react-router-dom": "^7.4.0",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.64",
+    "@types/react-datepicker": "^6.2.0",
     "@types/react-dom": "^18.2.21",
+    "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^7.1.1",
     "@typescript-eslint/parser": "^7.1.1",
     "@vitejs/plugin-react": "^4.2.1",

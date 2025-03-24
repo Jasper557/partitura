@@ -118,4 +118,28 @@ export const deleteSheetMusic = async (userId: string, itemId: string) => {
     console.error('Error deleting sheet music:', error)
     throw error
   }
+}
+
+export const fetchSheetMusic = async (userId: string): Promise<SheetMusicItem[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('sheet_music')
+      .select('*')
+      .eq('user_id', userId)
+      .order('date_added', { ascending: false })
+
+    if (error) throw error
+
+    return data.map(item => ({
+      id: item.id,
+      title: item.title,
+      composer: item.composer,
+      pdfPath: item.pdf_url,
+      isFavorite: item.is_favorite,
+      dateAdded: new Date(item.date_added)
+    }))
+  } catch (error) {
+    console.error('Error fetching sheet music:', error)
+    throw error
+  }
 } 
