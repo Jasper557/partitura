@@ -1,10 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { X, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, Maximize2, Minimize2, Download } from 'lucide-react'
-import { Document, Page } from 'react-pdf'
+import { Document, Page, pdfjs } from 'react-pdf'
 import { useShortcuts, ShortcutConfig } from '../context/ShortcutContext'
+import { saveAs } from 'file-saver'
 
 // Check if running in Electron
 const isElectron = !!window.electron?.isElectron
+
+// Set up PDF.js worker
+pdfjs.GlobalWorkerOptions.workerSrc = `${window.location.origin}/pdf.worker.min.js`
 
 interface PDFViewerProps {
   pdfPath: string | File
@@ -27,58 +31,72 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfPath, isOpen, onClose, title, 
   const [isPdfFullscreen, setIsPdfFullscreen] = useState(false)
   const viewerRef = useRef<HTMLDivElement>(null)
   const { isShortcutTriggered } = useShortcuts()
+  const [animateIn, setAnimateIn] = useState(false)
 
+  // Animation effect when opening/closing the modal
   useEffect(() => {
-    let unsubscribe: (() => void) | undefined
-
-    const handleFullscreenChange = (fullscreen: boolean) => {
-      setIsPdfFullscreen(fullscreen)
-    }
-
-    if (isElectron && window.electron) {
-      const cleanup = window.electron.onFullscreenChange(handleFullscreenChange)
-      unsubscribe = typeof cleanup === 'function' ? cleanup : undefined
+    if (isOpen) {
+      const timer = setTimeout(() => setAnimateIn(true), 50);
+      return () => clearTimeout(timer);
     } else {
-      const handleBrowserFullscreenChange = () => {
-        setIsPdfFullscreen(document.fullscreenElement === viewerRef.current)
-      }
-      document.addEventListener('fullscreenchange', handleBrowserFullscreenChange)
-      unsubscribe = () => {
-        document.removeEventListener('fullscreenchange', handleBrowserFullscreenChange)
-      }
+      setAnimateIn(false);
     }
+  }, [isOpen]);
 
-    return () => {
-      if (unsubscribe) unsubscribe()
-      if (isPdfFullscreen) {
-        if (isElectron && window.electron) {
-          window.electron.syncPdfFullscreen(false)
-        } else if (document.fullscreenElement) {
-          document.exitFullscreen()
-        }
+  const handleFullscreenChange = (fullscreen: boolean) => {
+    setIsPdfFullscreen(fullscreen)
+    
+    // Adjust body styles when entering/exiting fullscreen
+    if (fullscreen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    
+    // Handle browser's fullscreen API
+    const handleBrowserFullscreenChange = () => {
+      if (!document.fullscreenElement && isPdfFullscreen) {
         setIsPdfFullscreen(false)
+        document.body.style.overflow = ''
       }
     }
-  }, [isOpen, isElectron, isPdfFullscreen])
-
-  const togglePdfFullscreen = async () => {
-    try {
-      if (isElectron && window.electron) {
-        const newState = !isPdfFullscreen
-        setIsPdfFullscreen(newState)
-        await window.electron.syncPdfFullscreen(newState)
-      } else {
-        if (!isPdfFullscreen && viewerRef.current) {
-          await viewerRef.current.requestFullscreen()
-        } else if (document.fullscreenElement) {
-          await document.exitFullscreen()
-        }
-      }
-    } catch (err) {
-      console.error('Error toggling PDF fullscreen:', err)
+    
+    document.addEventListener('fullscreenchange', handleBrowserFullscreenChange)
+    
+    return () => {
+      document.removeEventListener('fullscreenchange', handleBrowserFullscreenChange)
     }
   }
-
+  
+  useEffect(() => {
+    return () => {
+      // Clean up when component unmounts
+      document.body.style.overflow = ''
+    }
+  }, [])
+  
+  const togglePdfFullscreen = async () => {
+    if (!isPdfFullscreen) {
+      try {
+        if (viewerRef.current && viewerRef.current.requestFullscreen) {
+          await viewerRef.current.requestFullscreen()
+        }
+        handleFullscreenChange(true)
+      } catch (error) {
+        console.error('Error attempting to enable fullscreen:', error)
+      }
+    } else {
+      try {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen()
+        }
+        handleFullscreenChange(false)
+      } catch (error) {
+        console.error('Error attempting to exit fullscreen:', error)
+      }
+    }
+  }
+  
   useEffect(() => {
     if (isOpen && pdfPath) {
       setIsLoading(true)
@@ -163,39 +181,38 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfPath, isOpen, onClose, title, 
 
   const handleClose = (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (isPdfFullscreen) {
-      if (isElectron && window.electron) {
-        window.electron.syncPdfFullscreen(false)
-      } else if (document.fullscreenElement) {
-        document.exitFullscreen()
+    
+    // First animate out
+    setAnimateIn(false);
+    
+    // Then close after animation completes
+    setTimeout(() => {
+      onClose()
+      
+      // Reset state
+      if (isPdfFullscreen) {
+        try {
+          if (document.exitFullscreen) {
+            document.exitFullscreen()
+          }
+          handleFullscreenChange(false)
+        } catch (error) {
+          console.error('Error exiting fullscreen:', error)
+        }
       }
-      setIsPdfFullscreen(false)
-    }
-    onClose()
+    }, 300);
   }
 
   const handleDownload = async () => {
     try {
-      if (pdfPath instanceof File) {
-        // Create a temporary link element
-        const link = document.createElement('a')
-        link.href = URL.createObjectURL(pdfPath)
-        link.download = pdfPath.name || 'document.pdf'
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-      } else {
-        // For URL paths
+      if (typeof pdfPath === 'string') {
+        // If it's a URL, fetch and save
         const response = await fetch(pdfPath)
         const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        const link = document.createElement('a')
-        link.href = url
-        link.download = title || 'document.pdf'
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        window.URL.revokeObjectURL(url)
+        saveAs(blob, `${title || 'document'}.pdf`)
+      } else if (pdfPath instanceof File) {
+        // If it's already a File object
+        saveAs(pdfPath, pdfPath.name)
       }
     } catch (err) {
       console.error('Error downloading PDF:', err)
@@ -206,7 +223,11 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfPath, isOpen, onClose, title, 
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 animate-fadeIn"
+      className={`
+        fixed inset-0 z-50 flex items-center justify-center
+        bg-black transition-opacity duration-300 ease-in-out
+        ${animateIn ? 'bg-opacity-75' : 'bg-opacity-0'} 
+      `}
       onClick={handleClose}
     >
       <div 
@@ -216,6 +237,8 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ pdfPath, isOpen, onClose, title, 
           ${isDarkMode ? 'bg-gray-800' : 'bg-white'} 
           rounded-lg shadow-xl overflow-hidden 
           ${isPdfFullscreen ? 'max-w-none m-0 rounded-none h-screen' : ''}
+          transition-all duration-300 ease-out
+          ${animateIn ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}
         `}
         onClick={e => e.stopPropagation()}
       >

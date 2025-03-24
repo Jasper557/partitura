@@ -145,86 +145,115 @@ const AddNewModal: React.FC<{
   onDataChange: (data: { title: string; composer: string; file?: File }) => void
   isDarkMode: boolean
 }> = ({ isOpen, onClose, onAdd, data, onDataChange, isDarkMode }) => {
+  const [animateIn, setAnimateIn] = useState(false);
+  
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => setAnimateIn(true), 50);
+      return () => clearTimeout(timer);
+    } else {
+      setAnimateIn(false);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
+  const bgClass = isDarkMode ? 'bg-gray-900' : 'bg-white';
+  const textClass = isDarkMode ? 'text-gray-100' : 'text-gray-900';
+  const mutedTextClass = isDarkMode ? 'text-gray-400' : 'text-gray-500';
+  const borderClass = isDarkMode ? 'border-gray-700' : 'border-gray-200';
+  const inputBgClass = isDarkMode ? 'bg-gray-800' : 'bg-gray-50';
+
+  const isFormComplete = data.title && data.composer && data.file;
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/50">
-      <div className={`
-        relative w-full max-w-4xl rounded-xl shadow-lg
-        ${isDarkMode ? 'bg-gray-800' : 'bg-white'}
-        p-6
-      `}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div 
+        className={`fixed inset-0 bg-black transition-opacity duration-300 ${animateIn ? 'opacity-50' : 'opacity-0'}`}
+        onClick={onClose}
+      />
+      
+      {/* Modal */}
+      <div 
+        className={`
+          ${bgClass} w-full max-w-lg rounded-xl overflow-hidden shadow-xl
+          transition-all duration-500 ease-out
+          ${animateIn ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}
+          z-10 relative
+        `}
+      >
+        {/* Close button */}
         <button
           onClick={onClose}
-          className={`
-            absolute top-4 right-4
-            p-2 rounded-full
-            ${isDarkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}
-          `}
+          className={`absolute top-4 right-4 p-2 rounded-full transition-colors ${mutedTextClass} hover:${textClass}`}
         >
-          <X size={20} />
+          <X size={18} />
         </button>
 
-        <h2 className={`text-xl font-bold mb-6 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-          Add New Sheet Music
-        </h2>
+        {/* Title */}
+        <div className="p-6 pb-0">
+          <h2 className={`text-xl font-medium ${textClass} flex items-center gap-2`}>
+            <Music size={18} className="text-blue-500" />
+            <span>New Sheet Music</span>
+          </h2>
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <input
-              type="text"
-              placeholder="Title"
-              value={data.title}
-              onChange={e => onDataChange({ ...data, title: e.target.value })}
-              className={`
-                w-full px-4 py-2 rounded-lg
-                ${isDarkMode
-                  ? 'bg-gray-700 text-gray-100'
-                  : 'bg-gray-50 text-gray-900'
-                }
-                focus:outline-none focus:ring-2 focus:ring-blue-500
-              `}
-            />
-            <input
-              type="text"
-              placeholder="Composer"
-              value={data.composer}
-              onChange={e => onDataChange({ ...data, composer: e.target.value })}
-              className={`
-                w-full px-4 py-2 rounded-lg
-                ${isDarkMode
-                  ? 'bg-gray-700 text-gray-100'
-                  : 'bg-gray-50 text-gray-900'
-                }
-                focus:outline-none focus:ring-2 focus:ring-blue-500
-              `}
-            />
-            <button
-              onClick={() => onAdd(data)}
-              disabled={!data.file || !data.title || !data.composer}
-              className={`
-                w-full py-2 rounded-lg
-                ${!data.file || !data.title || !data.composer
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : isDarkMode
-                    ? 'bg-blue-600 hover:bg-blue-700'
-                    : 'bg-blue-500 hover:bg-blue-600'
-                }
-                text-white transition-colors duration-200
-              `}
-            >
-              Create
-            </button>
-          </div>
-          <DropZone 
-            onFileSelect={file => onDataChange({ ...data, file })}
-            selectedFile={data.file}
+        {/* Form */}
+        <div className="p-6 space-y-4">
+          <input
+            type="text"
+            placeholder="Title"
+            value={data.title}
+            onChange={e => onDataChange({ ...data, title: e.target.value })}
+            className={`
+              w-full px-4 py-2 rounded-lg border ${borderClass}
+              ${inputBgClass} ${textClass}
+              focus:outline-none focus:ring-1 focus:ring-blue-500
+              transition-all duration-200
+            `}
           />
+          
+          <input
+            type="text"
+            placeholder="Composer"
+            value={data.composer}
+            onChange={e => onDataChange({ ...data, composer: e.target.value })}
+            className={`
+              w-full px-4 py-2 rounded-lg border ${borderClass}
+              ${inputBgClass} ${textClass}
+              focus:outline-none focus:ring-1 focus:ring-blue-500
+              transition-all duration-200
+            `}
+          />
+          
+          <div className="pt-2">
+            <DropZone 
+              onFileSelect={file => onDataChange({ ...data, file: file || undefined })}
+              selectedFile={data.file}
+            />
+          </div>
+          
+          <button
+            onClick={() => isFormComplete && onAdd(data)}
+            disabled={!isFormComplete}
+            className={`
+              w-full py-2 rounded-lg mt-4
+              transition-all duration-300
+              flex items-center justify-center gap-2
+              ${isFormComplete 
+                ? 'bg-blue-500 hover:bg-blue-600 text-white shadow-md hover:shadow-lg' 
+                : 'bg-gray-300 cursor-not-allowed text-gray-500'}
+              ${data.file ? 'animate-pulse-once' : ''}
+            `}
+          >
+            Create
+          </button>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 const SheetMusic: React.FC = () => {
   const { isDarkMode } = useTheme()

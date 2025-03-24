@@ -84,18 +84,18 @@ const Sidebar: React.FC<SidebarProps> = ({
             onClick={() => onNavigate('sheet-music')}
           />
           <NavItem 
-            icon={<BookOpen size={24} />} 
-            text="Practice" 
-            isExpanded={isExpanded}
-            isActive={currentPage === 'practice'}
-            onClick={() => onNavigate('practice')}
-          />
-          <NavItem 
             icon={<Calendar size={24} />} 
             text="Calendar" 
             isExpanded={isExpanded}
             isActive={currentPage === 'calendar'}
             onClick={() => onNavigate('calendar')}
+          />
+          <NavItem 
+            icon={<BookOpen size={24} />} 
+            text="Practice" 
+            isExpanded={isExpanded}
+            isActive={currentPage === 'practice'}
+            onClick={() => onNavigate('practice')}
           />
         </ul>
       </nav>

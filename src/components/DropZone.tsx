@@ -1,15 +1,25 @@
-import React, { useCallback, useState } from 'react'
-import { Upload, FileCheck, X } from 'lucide-react'
+import React, { useCallback, useState, useEffect } from 'react'
+import { Upload, FileCheck, X, Music, File } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
 
 interface DropZoneProps {
-  onFileSelect: (file: File) => void
+  onFileSelect: (file: File | null) => void
   selectedFile?: File | null
 }
 
 const DropZone: React.FC<DropZoneProps> = ({ onFileSelect, selectedFile }) => {
   const { isDarkMode } = useTheme()
   const [isDragging, setIsDragging] = useState(false)
+  const [isAnimating, setIsAnimating] = useState(false)
+
+  useEffect(() => {
+    if (selectedFile) {
+      setIsAnimating(true);
+      setTimeout(() => {
+        setIsAnimating(false);
+      }, 800);
+    }
+  }, [selectedFile]);
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -41,21 +51,30 @@ const DropZone: React.FC<DropZoneProps> = ({ onFileSelect, selectedFile }) => {
     }
   }
 
-  const getDropZoneStyle = () => {
-    if (selectedFile) {
-      return isDarkMode
-        ? 'border-green-500 bg-green-900/10'
-        : 'border-green-500 bg-green-50'
-    }
-    if (isDragging) {
-      return isDarkMode
-        ? 'border-blue-500 bg-blue-900/10'
-        : 'border-blue-500 bg-blue-50'
-    }
-    return isDarkMode
-      ? 'border-gray-700 hover:border-gray-600'
-      : 'border-gray-300 hover:border-gray-400'
+  const handleRemoveFile = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    onFileSelect(null);
   }
+
+  // Simple color classes based on state
+  const bgClass = isDarkMode ? 'bg-gray-800' : 'bg-gray-50';
+  const borderClass = isDarkMode ? 'border-gray-700' : 'border-gray-200';
+  const textClass = isDarkMode ? 'text-gray-300' : 'text-gray-600';
+  const mutedTextClass = isDarkMode ? 'text-gray-400' : 'text-gray-500';
+  
+  // Dynamic classes based on state
+  const dynamicBorderClass = selectedFile 
+    ? 'border-green-500' 
+    : isDragging 
+      ? 'border-blue-500' 
+      : borderClass;
+  
+  const dynamicBgClass = selectedFile
+    ? isDarkMode ? 'bg-gray-800' : 'bg-white'
+    : isDragging
+      ? isDarkMode ? 'bg-blue-900/10' : 'bg-blue-50/50'
+      : bgClass;
 
   return (
     <div
@@ -65,47 +84,51 @@ const DropZone: React.FC<DropZoneProps> = ({ onFileSelect, selectedFile }) => {
       onDrop={handleDrop}
       className={`
         relative
-        border-2 border-dashed rounded-xl
+        border border-dashed rounded-lg
         transition-all duration-200
         cursor-pointer
-        p-8
         flex flex-col items-center justify-center
-        ${getDropZoneStyle()}
-        ${isDarkMode ? 'bg-gray-800' : 'bg-white'}
+        h-28
+        overflow-hidden
+        ${dynamicBorderClass}
+        ${dynamicBgClass}
+        ${isDragging ? 'scale-[1.01]' : ''}
       `}
     >
       <input
         type="file"
         accept=".pdf"
         onChange={handleFileSelect}
-        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
       />
+      
+      {isAnimating && (
+        <div className="absolute inset-0 flex items-center justify-center bg-green-500/5 z-20 animate-fadeIn">
+          <FileCheck size={30} className="text-green-500 animate-pulse" />
+        </div>
+      )}
+
       {selectedFile ? (
-        <>
-          <FileCheck 
-            size={40} 
-            className={`mb-4 ${isDarkMode ? 'text-green-400' : 'text-green-500'}`} 
-          />
-          <p className={`text-center ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>
+        <div className="flex items-center gap-3 px-4 py-2">
+          <File size={20} className="text-green-500" />
+          <span className={`font-medium text-sm truncate max-w-[200px] ${textClass}`}>
             {selectedFile.name}
-          </p>
-          <p className={`mt-2 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-            Click or drag another file to replace
-          </p>
-        </>
+          </span>
+        </div>
       ) : (
-        <>
+        <div className={`
+          flex flex-col items-center justify-center gap-1 p-4
+          transition-transform duration-300
+          ${isDragging ? 'scale-110' : ''}
+        `}>
           <Upload 
-            size={40} 
-            className={`mb-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} 
+            size={20} 
+            className={`${isDragging ? 'text-blue-500' : mutedTextClass}`} 
           />
-          <p className={`text-center ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-            Drag and drop your PDF here, or click to select
-          </p>
-          <p className={`mt-2 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-            Only PDF files are accepted
-          </p>
-        </>
+          <span className={`text-xs ${textClass}`}>
+            {isDragging ? 'Drop PDF here' : 'Upload PDF'}
+          </span>
+        </div>
       )}
     </div>
   )

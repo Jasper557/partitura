@@ -1,8 +1,8 @@
-import React from 'react'
-import { format } from 'date-fns'
+import React, { useState, useEffect } from 'react'
+import { PracticeEvent, SheetMusicItem } from '../../types'
+import { Edit3, Trash2, X, Clock, CheckCircle, XCircle, Calendar, Music, ExternalLink } from 'lucide-react'
 import { useTheme } from '../../context/ThemeContext'
-import { PracticeEvent, SheetMusicItem } from '../../types/index'
-import { Clock, CalendarDays, Music, Edit, Trash2, Check, X } from 'lucide-react'
+import { format } from 'date-fns'
 
 interface EventDetailProps {
   event: PracticeEvent
@@ -22,41 +22,69 @@ const EventDetail: React.FC<EventDetailProps> = ({
   sheetMusicItem
 }) => {
   const { isDarkMode } = useTheme()
+  const [animateIn, setAnimateIn] = useState(false)
   
-  // Format dates
+  useEffect(() => {
+    // Trigger animation when component mounts
+    const timer = setTimeout(() => setAnimateIn(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
+  
+  const handleClose = () => {
+    setAnimateIn(false);
+    setTimeout(() => onClose(), 300);
+  }
+  
+  const handleDelete = () => {
+    setAnimateIn(false);
+    setTimeout(() => onDelete(), 300);
+  }
+  
   const formatDateRange = () => {
-    const startDate = format(new Date(event.startTime), 'MMMM d, yyyy')
-    const endDate = format(new Date(event.endTime), 'MMMM d, yyyy')
+    const start = new Date(event.startTime)
+    const end = new Date(event.endTime)
     
-    const startTime = format(new Date(event.startTime), 'h:mm a')
-    const endTime = format(new Date(event.endTime), 'h:mm a')
+    const isSameDay = 
+      start.getDate() === end.getDate() && 
+      start.getMonth() === end.getMonth() && 
+      start.getFullYear() === end.getFullYear()
     
-    if (startDate === endDate) {
+    if (isSameDay) {
       return (
         <>
-          <span>{startDate}</span>
-          <span className="text-sm mx-1">•</span>
-          <span>{startTime} - {endTime}</span>
+          <span>{format(start, 'EEEE, MMMM d, yyyy')}</span>
+          <span className="mx-1">•</span>
+          <span>{format(start, 'h:mm a')} - {format(end, 'h:mm a')}</span>
         </>
       )
     } else {
       return (
         <>
-          <div>{startDate} {startTime}</div>
-          <div className="mt-1">to</div>
-          <div>{endDate} {endTime}</div>
+          <div>{format(start, 'EEEE, MMMM d, yyyy')} • {format(start, 'h:mm a')}</div>
+          <div>to</div>
+          <div>{format(end, 'EEEE, MMMM d, yyyy')} • {format(end, 'h:mm a')}</div>
         </>
       )
     }
   }
   
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+      <div 
+        className={`
+          fixed inset-0 bg-black transition-opacity duration-300
+          ${animateIn ? 'bg-opacity-50' : 'bg-opacity-0'}
+        `}
+        onClick={handleClose}
+      />
+      
       <div 
         className={`
           w-full max-w-md p-6 rounded-xl shadow-xl
           ${isDarkMode ? 'bg-gray-800' : 'bg-white'}
-          relative
+          transition-all duration-300 ease-out
+          ${animateIn ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}
+          relative z-10
         `}
       >
         {/* Header with color bar */}
@@ -68,7 +96,7 @@ const EventDetail: React.FC<EventDetailProps> = ({
         <div className="mt-4">
           {/* Close button */}
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className={`
               absolute top-4 right-4 p-2 rounded-full
               ${isDarkMode 
@@ -86,103 +114,94 @@ const EventDetail: React.FC<EventDetailProps> = ({
             <button
               onClick={() => onToggleComplete(!event.isCompleted)}
               className={`
-                flex items-center justify-center w-6 h-6 rounded-full mr-2
-                ${event.isCompleted 
-                  ? 'bg-green-500 text-white' 
-                  : isDarkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-500'
+                flex items-center gap-2 px-3 py-1 rounded-full text-sm
+                transition-colors
+                ${event.isCompleted
+                  ? isDarkMode 
+                    ? 'bg-green-900/30 text-green-400' 
+                    : 'bg-green-100 text-green-700'
+                  : isDarkMode
+                    ? 'bg-gray-700 text-gray-300' 
+                    : 'bg-gray-100 text-gray-700'
                 }
               `}
             >
-              {event.isCompleted ? <Check size={14} /> : null}
+              {event.isCompleted ? (
+                <>
+                  <CheckCircle size={16} />
+                  <span>Completed</span>
+                </>
+              ) : (
+                <>
+                  <XCircle size={16} />
+                  <span>Not completed</span>
+                </>
+              )}
             </button>
-            <span 
-              className={`
-                text-sm font-medium
-                ${event.isCompleted 
-                  ? isDarkMode ? 'text-green-400' : 'text-green-600'
-                  : isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                }
-              `}
-            >
-              {event.isCompleted ? 'Completed' : 'Not completed'}
-            </span>
           </div>
           
-          {/* Title */}
-          <h2 
-            className={`
-              text-xl font-bold mb-2
-              ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}
-            `}
-          >
+          {/* Event title */}
+          <h2 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
             {event.title}
           </h2>
           
           {/* Date and time */}
-          <div 
-            className={`
-              flex items-start mb-4 
-              ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}
-            `}
-          >
-            <CalendarDays size={18} className="mr-2 mt-0.5 flex-shrink-0" />
+          <div className={`flex items-start gap-3 mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+            <Calendar size={18} className="mt-1" />
             <div className="text-sm">{formatDateRange()}</div>
           </div>
           
-          {/* Sheet music reference */}
+          {/* Sheet music */}
           {sheetMusicItem && (
-            <div 
-              className={`
-                flex items-start mb-4
-                ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}
-              `}
-            >
-              <Music size={18} className="mr-2 mt-0.5 flex-shrink-0" />
+            <div className={`flex items-start gap-3 mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <Music size={18} className="mt-1" />
               <div className="text-sm">
-                <div className="font-medium">{sheetMusicItem.title}</div>
-                <div>{sheetMusicItem.composer}</div>
+                <p>{sheetMusicItem.title}</p>
+                <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  {sheetMusicItem.composer}
+                </p>
               </div>
             </div>
           )}
           
-          {/* Description */}
+          {/* Notes */}
           {event.description && (
-            <div 
-              className={`
-                ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}
-                mb-6 text-sm
-              `}
-            >
+            <div className={`
+              p-4 rounded-lg text-sm mt-6 mb-6
+              ${isDarkMode ? 'bg-gray-700/50 text-gray-300' : 'bg-gray-100 text-gray-700'}
+            `}>
               <p className="whitespace-pre-line">{event.description}</p>
             </div>
           )}
           
-          {/* Actions */}
-          <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+          {/* Action buttons */}
+          <div className="flex justify-end gap-2 mt-6">
             <button
-              onClick={onEdit}
+              onClick={handleDelete}
               className={`
-                py-2 px-3 rounded-lg text-sm font-medium flex items-center
+                flex items-center gap-2 p-2 rounded-lg
                 ${isDarkMode 
-                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-gray-700 text-red-400 hover:bg-gray-600' 
+                  : 'bg-gray-100 text-red-600 hover:bg-gray-200'
                 }
                 transition-colors
               `}
             >
-              <Edit size={16} className="mr-1" />
-              Edit
+              <Trash2 size={18} />
             </button>
             <button
-              onClick={onDelete}
+              onClick={onEdit}
               className={`
-                py-2 px-3 rounded-lg text-sm font-medium flex items-center
-                bg-red-600 text-white hover:bg-red-700
+                flex items-center gap-2 p-2 px-4 rounded-lg
+                ${isDarkMode 
+                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                  : 'bg-blue-500 text-white hover:bg-blue-600'
+                }
                 transition-colors
               `}
             >
-              <Trash2 size={16} className="mr-1" />
-              Delete
+              <Edit3 size={18} />
+              <span>Edit</span>
             </button>
           </div>
         </div>

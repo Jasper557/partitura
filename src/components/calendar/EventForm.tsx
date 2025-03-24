@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import DatePicker from 'react-datepicker'
-import "react-datepicker/dist/react-datepicker.css"
 import { format, addHours } from 'date-fns'
 import { useTheme } from '../../context/ThemeContext'
 import { PracticeEvent, SheetMusicItem } from '../../types/index'
 import { X, Calendar, Clock, Music, Check } from 'lucide-react'
+import DateTimePicker from './DateTimePicker'
 
 interface EventFormProps {
   event?: PracticeEvent
@@ -44,68 +43,104 @@ const EventForm: React.FC<EventFormProps> = ({
   const [isCompleted, setIsCompleted] = useState(false)
   const [sheetMusicId, setSheetMusicId] = useState<string | undefined>(undefined)
   const [color, setColor] = useState('#3B82F6') // Default blue
+  const [animateIn, setAnimateIn] = useState(false)
   
   // Initialize form with event data or defaults
   useEffect(() => {
-    if (event) {
-      setTitle(event.title)
-      setDescription(event.description)
-      setStartTime(new Date(event.startTime))
-      setEndTime(new Date(event.endTime))
-      setIsCompleted(event.isCompleted)
-      setSheetMusicId(event.sheetMusicId)
-      setColor(event.color || '#3B82F6')
+    if (isOpen) {
+      if (event) {
+        setTitle(event.title)
+        setDescription(event.description)
+        setStartTime(new Date(event.startTime))
+        setEndTime(new Date(event.endTime))
+        setIsCompleted(event.isCompleted)
+        setSheetMusicId(event.sheetMusicId)
+        setColor(event.color || '#3B82F6')
+      } else {
+        // Default to selected date if provided, or current time
+        const baseDate = selectedDate || new Date()
+        
+        // Reset form for new event
+        setTitle('')
+        setDescription('')
+        setStartTime(baseDate)
+        setEndTime(addHours(baseDate, 1))
+        setIsCompleted(false)
+        setSheetMusicId(undefined)
+        setColor('#3B82F6')
+      }
+
+      // Trigger animation
+      const timer = setTimeout(() => setAnimateIn(true), 50);
+      return () => clearTimeout(timer);
     } else {
-      // Default to selected date if provided, or current time
-      const baseDate = selectedDate || new Date()
-      
-      // Reset form for new event
-      setTitle('')
-      setDescription('')
-      setStartTime(baseDate)
-      setEndTime(addHours(baseDate, 1))
-      setIsCompleted(false)
-      setSheetMusicId(undefined)
-      setColor('#3B82F6')
+      setAnimateIn(false);
     }
-  }, [event, isOpen, selectedDate])
+  }, [isOpen, event, selectedDate])
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Create event object
-    const eventData: Omit<PracticeEvent, 'id'> = {
+    onSave({
       title,
-      description,
-      startTime,
-      endTime,
-      isCompleted,
-      sheetMusicId,
-      color
-    }
-    
-    onSave(eventData)
+      startTime: startTime,
+      endTime: endTime,
+      description: description,
+      color,
+      isCompleted: isCompleted,
+      sheetMusicId
+    })
+
+    // First animate out, then close
+    setAnimateIn(false);
+    setTimeout(() => onClose(), 300);
   }
   
-  // Custom date picker styles
-  const datePickerClassName = `
-    w-full py-2 px-3 rounded-lg
-    ${isDarkMode 
-      ? 'bg-gray-700 text-gray-100 border-gray-600' 
-      : 'bg-white text-gray-800 border-gray-300'
+  const handleClose = () => {
+    setAnimateIn(false);
+    setTimeout(() => onClose(), 300);
+  }
+  
+  // Handle end time update with validation
+  const handleEndTimeChange = (date: Date) => {
+    if (date <= startTime) {
+      // If end time is before or equal to start time, set it to 1 hour after start time
+      setEndTime(addHours(startTime, 1));
+    } else {
+      setEndTime(date);
     }
-    border focus:outline-none focus:ring-2 focus:ring-blue-500
-  `
+  };
+  
+  // Handle start time update
+  const handleStartTimeChange = (date: Date) => {
+    setStartTime(date);
+    
+    // If end time is now before or equal to start time, adjust it
+    if (endTime <= date) {
+      setEndTime(addHours(date, 1));
+    }
+  };
   
   if (!isOpen) return null
   
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <div 
+        className={`
+          fixed inset-0 bg-black transition-opacity duration-300
+          ${animateIn ? 'bg-opacity-50' : 'bg-opacity-0'}
+        `}
+        onClick={handleClose}
+      />
+      
       <div 
         className={`
           w-full max-w-md p-6 rounded-xl shadow-xl
           ${isDarkMode ? 'bg-gray-800' : 'bg-white'}
           max-h-[90vh] overflow-y-auto
+          transition-all duration-300 ease-out
+          ${animateIn ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}
+          relative z-10
         `}
       >
         <div className="flex justify-between items-center mb-4">
@@ -113,7 +148,7 @@ const EventForm: React.FC<EventFormProps> = ({
             {isEditing ? 'Edit Practice Session' : 'New Practice Session'}
           </h2>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className={`
               p-2 rounded-full
               ${isDarkMode 
@@ -182,52 +217,24 @@ const EventForm: React.FC<EventFormProps> = ({
           {/* Date and Time */}
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <label 
-                className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}
-              >
-                Start
-              </label>
-              <div className="relative">
-                <DatePicker
-                  selected={startTime}
-                  onChange={(date: Date | null) => date && setStartTime(date)}
-                  showTimeSelect
-                  timeFormat="HH:mm"
-                  timeIntervals={15}
-                  dateFormat="MMM d, yyyy h:mm aa"
-                  className={datePickerClassName}
-                  wrapperClassName="w-full"
-                />
-                <Calendar 
-                  size={16} 
-                  className={`absolute right-3 top-3 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} 
-                />
-              </div>
+              <DateTimePicker
+                label="Start"
+                selectedDate={startTime}
+                onChange={handleStartTimeChange}
+                iconRight={<Calendar size={16} />}
+                showTimeSelect={true}
+              />
             </div>
             
             <div>
-              <label 
-                className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}
-              >
-                End
-              </label>
-              <div className="relative">
-                <DatePicker
-                  selected={endTime}
-                  onChange={(date: Date | null) => date && setEndTime(date)}
-                  showTimeSelect
-                  timeFormat="HH:mm"
-                  timeIntervals={15}
-                  dateFormat="MMM d, yyyy h:mm aa"
-                  className={datePickerClassName}
-                  wrapperClassName="w-full"
-                  minDate={startTime}
-                />
-                <Clock 
-                  size={16} 
-                  className={`absolute right-3 top-3 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} 
-                />
-              </div>
+              <DateTimePicker
+                label="End"
+                selectedDate={endTime}
+                onChange={handleEndTimeChange}
+                iconRight={<Clock size={16} />}
+                showTimeSelect={true}
+                minDate={startTime}
+              />
             </div>
           </div>
           
@@ -315,7 +322,7 @@ const EventForm: React.FC<EventFormProps> = ({
           <div className="flex justify-end gap-3 mt-6">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className={`
                 py-2 px-4 rounded-lg text-sm font-medium
                 ${isDarkMode 
