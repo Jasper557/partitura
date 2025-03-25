@@ -4,6 +4,7 @@ import { ThemeProvider } from './context/ThemeContext'
 import { AuthProvider } from './context/AuthContext'
 import { ToastProvider } from './context/ToastContext'
 import { ShortcutProvider } from './context/ShortcutContext'
+import { AnimatePresence } from 'framer-motion'
 import MainLayout from './layouts/MainLayout'
 import SheetMusic from './pages/SheetMusic'
 import Practice from './pages/Practice'
@@ -32,6 +33,7 @@ const ProtectedContent: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>('sheet-music')
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false)
   const { user, loading } = useAuth()
+  const location = useLocation()
 
   if (loading) {
     return (
@@ -48,25 +50,25 @@ const ProtectedContent: React.FC = () => {
   const renderPage = () => {
     switch (currentPage) {
       case 'sheet-music':
-        return <SheetMusic />
+        return <SheetMusic key="sheet-music" />
       case 'practice':
-        return <Practice />
+        return <Practice key="practice" />
       case 'calendar':
-        return <Calendar />
+        return <Calendar key="calendar" />
       case 'settings':
-        return <Settings onNavigate={setCurrentPage} />
+        return <Settings key="settings" onNavigate={setCurrentPage} />
       case 'documentation':
-        return <Documentation onNavigate={setCurrentPage} />
+        return <Documentation key="documentation" onNavigate={setCurrentPage} />
       case 'keyboard-shortcuts':
-        return <KeyboardShortcuts onNavigate={setCurrentPage} />
+        return <KeyboardShortcuts key="keyboard-shortcuts" onNavigate={setCurrentPage} />
       case 'contact-support':
-        return <ContactSupport onNavigate={setCurrentPage} />
+        return <ContactSupport key="contact-support" onNavigate={setCurrentPage} />
       case 'privacy-settings':
-        return <PrivacySettings onNavigate={setCurrentPage} />
+        return <PrivacySettings key="privacy-settings" onNavigate={setCurrentPage} />
       case 'notifications':
-        return <NotificationSettings onNavigate={setCurrentPage} />
+        return <NotificationSettings key="notifications" onNavigate={setCurrentPage} />
       default:
-        return <SheetMusic />
+        return <SheetMusic key="sheet-music-default" />
     }
   }
 
@@ -77,7 +79,9 @@ const ProtectedContent: React.FC = () => {
       isSidebarExpanded={isSidebarExpanded}
       onSidebarExpandedChange={setIsSidebarExpanded}
     >
-      {renderPage()}
+      <AnimatePresence mode="wait">
+        {renderPage()}
+      </AnimatePresence>
     </MainLayout>
   )
 }

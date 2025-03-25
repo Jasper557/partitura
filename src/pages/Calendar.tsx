@@ -16,6 +16,7 @@ import MonthNavigation from '../components/calendar/MonthNavigation'
 import EventForm from '../components/calendar/EventForm'
 import EventDetail from '../components/calendar/EventDetail'
 import { fetchSheetMusic } from '../services/sheetMusicService'
+import PageTransition from '../components/PageTransition'
 
 const Calendar: React.FC = () => {
   const { isDarkMode } = useTheme()
@@ -195,71 +196,73 @@ const Calendar: React.FC = () => {
   }
   
   return (
-    <div className={`
-      p-6 min-h-screen
-      ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}
-    `}>
-      <div className="max-w-7xl mx-auto">
-        {/* Month navigation and Add event button */}
-        <MonthNavigation 
-          currentDate={currentDate} 
-          onDateChange={setCurrentDate}
-          onAddEvent={handleAddEvent}
-        />
-        
-        {/* Loading indicator */}
-        {isLoading ? (
-          <div className={`
-            rounded-xl shadow-lg p-8 flex items-center justify-center
-            ${isDarkMode ? 'bg-gray-800' : 'bg-white'}
-            min-h-[500px]
-          `}>
-            <div className="flex flex-col items-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-              <p className={`mt-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                Loading calendar events...
-              </p>
+    <PageTransition>
+      <div className={`
+        p-6 min-h-screen
+        ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}
+      `}>
+        <div className="max-w-7xl mx-auto">
+          {/* Month navigation and Add event button */}
+          <MonthNavigation 
+            currentDate={currentDate} 
+            onDateChange={setCurrentDate}
+            onAddEvent={handleAddEvent}
+          />
+          
+          {/* Loading indicator */}
+          {isLoading ? (
+            <div className={`
+              rounded-xl shadow-lg p-8 flex items-center justify-center
+              ${isDarkMode ? 'bg-gray-800' : 'bg-white'}
+              min-h-[500px]
+            `}>
+              <div className="flex flex-col items-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                <p className={`mt-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  Loading calendar events...
+                </p>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className={`
-            rounded-xl shadow-lg overflow-hidden
-            ${isDarkMode ? 'bg-gray-800' : 'bg-white'}
-          `}>
-            <CalendarGrid 
-              currentDate={currentDate}
-              events={events}
-              onDateClick={handleDateClick}
-              onEventClick={handleViewEvent}
-            />
-          </div>
+          ) : (
+            <div className={`
+              rounded-xl shadow-lg overflow-hidden
+              ${isDarkMode ? 'bg-gray-800' : 'bg-white'}
+            `}>
+              <CalendarGrid 
+                currentDate={currentDate}
+                events={events}
+                onDateClick={handleDateClick}
+                onEventClick={handleViewEvent}
+              />
+            </div>
+          )}
+        </div>
+        
+        {/* Event form modal */}
+        {isEventFormOpen && (
+          <EventForm 
+            event={selectedEvent || undefined}
+            isOpen={isEventFormOpen}
+            onClose={handleCloseEventForm}
+            onSave={handleSaveEvent}
+            selectedDate={selectedDate || undefined}
+            sheetMusicItems={sheetMusicItems}
+          />
+        )}
+        
+        {/* Event detail modal */}
+        {isEventDetailOpen && selectedEvent && (
+          <EventDetail 
+            event={selectedEvent}
+            onEdit={handleEditEvent}
+            onDelete={handleDeleteEvent}
+            onToggleComplete={handleToggleCompletion}
+            onClose={() => setIsEventDetailOpen(false)}
+            sheetMusicItem={getSheetMusicForEvent()}
+          />
         )}
       </div>
-      
-      {/* Event form modal */}
-      {isEventFormOpen && (
-        <EventForm 
-          event={selectedEvent || undefined}
-          isOpen={isEventFormOpen}
-          onClose={handleCloseEventForm}
-          onSave={handleSaveEvent}
-          selectedDate={selectedDate || undefined}
-          sheetMusicItems={sheetMusicItems}
-        />
-      )}
-      
-      {/* Event detail modal */}
-      {isEventDetailOpen && selectedEvent && (
-        <EventDetail 
-          event={selectedEvent}
-          onEdit={handleEditEvent}
-          onDelete={handleDeleteEvent}
-          onToggleComplete={handleToggleCompletion}
-          onClose={() => setIsEventDetailOpen(false)}
-          sheetMusicItem={getSheetMusicForEvent()}
-        />
-      )}
-    </div>
+    </PageTransition>
   )
 }
 

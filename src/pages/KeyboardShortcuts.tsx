@@ -21,6 +21,7 @@ import { useShortcuts, ShortcutConfig, DEFAULT_SHORTCUTS } from '../context/Shor
 import InfoBox from '../components/InfoBox'
 import SettingRow from '../components/SettingRow'
 import useScrollReset from '../hooks/useScrollReset'
+import PageTransition from '../components/PageTransition'
 
 // Type to safely access action names within a category
 type ActionName<T extends keyof ShortcutConfig> = keyof ShortcutConfig[T]
@@ -219,86 +220,88 @@ const KeyboardShortcuts: React.FC<{
   }
 
   return (
-    <div 
-      ref={listeningRef}
-      onKeyDown={handleKeyDown}
-      tabIndex={0}
-      className={`
-        p-6 outline-none
-        ${isDarkMode ? 'bg-gray-900 text-gray-200' : 'bg-gray-100 text-gray-800'}
-      `}
-    >
-      <div className="max-w-3xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center mb-6">
-          <button
-            onClick={() => onNavigate && onNavigate('settings')}
-            className={`
-              p-2 rounded-full mr-2
-              ${isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-200'}
-              transition-colors duration-200
-            `}
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <h1 className="text-2xl font-bold">Keyboard Shortcuts</h1>
-        </div>
-        
-        {/* Information box */}
-        <InfoBox icon={<Keyboard size={20} />}>
-          Customize keyboard shortcuts to make your workflow faster and more efficient.
-          Click any shortcut to change it, then press the new key combination.
-        </InfoBox>
-        
-        {/* Success message */}
-        {successMessage && (
-          <InfoBox icon={<Check size={20} />} variant="success">
-            {successMessage}
-          </InfoBox>
-        )}
-        
-        {/* Shortcut categories */}
-        {Object.entries(categoryInfo).map(([category, info]) => (
-          renderShortcutCategory(
-            category as keyof ShortcutConfig,
-            info.title,
-            info.icon
-          )
-        ))}
-        
-        {/* Action buttons */}
-        <div className="flex gap-4 mt-8 mb-12">
-          <button
-            onClick={handleSaveShortcuts}
-            className={`
-              px-6 py-2 rounded-lg font-medium flex items-center gap-2
-              ${isDarkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'}
-              text-white transition-all duration-300 ease-in-out
-              transform hover:scale-105
-            `}
-          >
-            <Save size={18} className="transform group-hover:rotate-12 transition-transform duration-300" />
-            Save Changes
-          </button>
+    <PageTransition>
+      <div 
+        ref={listeningRef}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        className={`
+          p-6 outline-none
+          ${isDarkMode ? 'bg-gray-900 text-gray-200' : 'bg-gray-100 text-gray-800'}
+        `}
+      >
+        <div className="max-w-3xl mx-auto">
+          {/* Header */}
+          <div className="flex items-center mb-6">
+            <button
+              onClick={() => onNavigate && onNavigate('settings')}
+              className={`
+                p-2 rounded-full mr-2
+                ${isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-200'}
+                transition-colors duration-200
+              `}
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <h1 className="text-2xl font-bold">Keyboard Shortcuts</h1>
+          </div>
           
-          <button
-            onClick={handleResetShortcuts}
-            className={`
-              px-6 py-2 rounded-lg font-medium flex items-center gap-2
-              ${isDarkMode 
-                ? 'bg-gray-800 hover:bg-gray-700 text-gray-300' 
-                : 'bg-white hover:bg-gray-50 text-gray-700'}
-              transition-all duration-300 ease-in-out
-              transform hover:scale-105
-              border ${isDarkMode ? 'border-gray-700' : 'border-gray-300'}
-            `}
-          >
-            <RefreshCw size={18} className="transform hover:rotate-180 transition-transform duration-500" />
-            Reset to Defaults
-          </button>
+          {/* Information box */}
+          <InfoBox icon={<Keyboard size={20} />}>
+            Customize keyboard shortcuts to make your workflow faster and more efficient.
+            Click any shortcut to change it, then press the new key combination.
+          </InfoBox>
+          
+          {/* Success message */}
+          {successMessage && (
+            <InfoBox icon={<Check size={20} />} variant="success">
+              {successMessage}
+            </InfoBox>
+          )}
+          
+          {/* Shortcut categories */}
+          {Object.entries(categoryInfo).map(([category, info]) => (
+            renderShortcutCategory(
+              category as keyof ShortcutConfig,
+              info.title,
+              info.icon
+            )
+          ))}
+          
+          {/* Action buttons */}
+          <div className="flex gap-4 mt-8 mb-12">
+            <button
+              onClick={handleSaveShortcuts}
+              className={`
+                px-6 py-2 rounded-lg font-medium flex items-center gap-2
+                ${isDarkMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'}
+                text-white transition-all duration-300 ease-in-out
+                transform hover:scale-105
+              `}
+            >
+              <Save size={18} className="transform group-hover:rotate-12 transition-transform duration-300" />
+              Save Changes
+            </button>
+            
+            <button
+              onClick={handleResetShortcuts}
+              className={`
+                px-6 py-2 rounded-lg font-medium flex items-center gap-2
+                ${isDarkMode 
+                  ? 'bg-gray-800 hover:bg-gray-700 text-gray-300' 
+                  : 'bg-white hover:bg-gray-50 text-gray-700'}
+                transition-all duration-300 ease-in-out
+                transform hover:scale-105
+                border ${isDarkMode ? 'border-gray-700' : 'border-gray-300'}
+              `}
+            >
+              <RefreshCw size={18} className="transform hover:rotate-180 transition-transform duration-500" />
+              Reset to Defaults
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </PageTransition>
   )
 }
 

@@ -13,6 +13,7 @@ import {
 } from '../services/sheetMusicService'
 import { useShortcuts } from '../context/ShortcutContext'
 import useScrollReset from '../hooks/useScrollReset'
+import PageTransition from '../components/PageTransition'
 
 const AddNewCard: React.FC<{ onClick: () => void; isDarkMode: boolean }> = ({ onClick, isDarkMode }) => (
   <div
@@ -376,44 +377,46 @@ const SheetMusic: React.FC = () => {
   }, [items, searchQuery])
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-          Sheet Music
-        </h1>
-        <SearchBar
-          onSearch={setSearchQuery}
+    <PageTransition>
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+            Sheet Music
+          </h1>
+          <SearchBar
+            onSearch={setSearchQuery}
+            isDarkMode={isDarkMode}
+            inputRef={searchInputRef}
+            isExpanded={isSearchExpanded}
+            setIsExpanded={setIsSearchExpanded}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <AddNewCard onClick={() => setIsAddingNew(true)} isDarkMode={isDarkMode} />
+          {filteredItems.map(item => (
+            <SheetMusicCard
+              key={item.id}
+              item={item}
+              onUpdate={handleUpdateItem}
+              onDelete={handleDeleteItem}
+            />
+          ))}
+        </div>
+
+        <AddNewModal
+          isOpen={isAddingNew}
+          onClose={() => {
+            setIsAddingNew(false)
+            setNewItemData({ title: '', composer: '' })
+          }}
+          onAdd={handleAddNew}
+          data={newItemData}
+          onDataChange={setNewItemData}
           isDarkMode={isDarkMode}
-          inputRef={searchInputRef}
-          isExpanded={isSearchExpanded}
-          setIsExpanded={setIsSearchExpanded}
         />
       </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        <AddNewCard onClick={() => setIsAddingNew(true)} isDarkMode={isDarkMode} />
-        {filteredItems.map(item => (
-          <SheetMusicCard
-            key={item.id}
-            item={item}
-            onUpdate={handleUpdateItem}
-            onDelete={handleDeleteItem}
-          />
-        ))}
-      </div>
-
-      <AddNewModal
-        isOpen={isAddingNew}
-        onClose={() => {
-          setIsAddingNew(false)
-          setNewItemData({ title: '', composer: '' })
-        }}
-        onAdd={handleAddNew}
-        data={newItemData}
-        onDataChange={setNewItemData}
-        isDarkMode={isDarkMode}
-      />
-    </div>
+    </PageTransition>
   )
 }
 
