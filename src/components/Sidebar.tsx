@@ -1,5 +1,5 @@
 import React from 'react'
-import { Music, BookOpen, Calendar, Settings } from 'lucide-react'
+import { Music, Globe, Calendar, Settings } from 'lucide-react'
 import NavItem from './NavItem'
 import { useTheme } from '../context/ThemeContext'
 import { SidebarProps } from '../types/index'
@@ -91,8 +91,8 @@ const Sidebar: React.FC<SidebarProps> = ({
             onClick={() => onNavigate('calendar')}
           />
           <NavItem 
-            icon={<BookOpen size={24} />} 
-            text="Practice" 
+            icon={<Globe size={24} />} 
+            text="Sight Reading" 
             isExpanded={isExpanded}
             isActive={currentPage === 'practice'}
             onClick={() => onNavigate('practice')}
