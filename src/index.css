@@ -269,6 +269,34 @@
   animation: pulseOnce 0.6s ease-in-out;
 }
 
+/* Double pulse animation */
+@keyframes pulseTwice {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  30% {
+    transform: scale(1.03);
+    box-shadow: 0 0 0 6px rgba(59, 130, 246, 0);
+  }
+  40% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+  70% {
+    transform: scale(1.03);
+    box-shadow: 0 0 0 6px rgba(59, 130, 246, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+.animate-pulse-twice {
+  animation: pulseTwice 2s ease-in-out;
+}
+
 /* Time picker slider styling */
 .slider-time {
   -webkit-appearance: none;

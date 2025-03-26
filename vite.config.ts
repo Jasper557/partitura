@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     // Base path matching GitHub repository name for GitHub Pages deployment
-    base: isProduction ? '/partitura/' : '/',
+    base: '/partitura/',
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),

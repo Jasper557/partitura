@@ -2,62 +2,100 @@ import React, { useCallback, useState, useEffect } from 'react'
 import { Upload, FileCheck, X, Music, File } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
 
+/**
+ * Props for the DropZone component
+ */
 interface DropZoneProps {
-  onFileSelect: (file: File | null) => void
-  selectedFile?: File | null
+  /** Callback function when a file is selected or cleared */
+  onFileSelect: (file: File | null) => void;
+  /** Currently selected file, if any */
+  selectedFile?: File | null;
+  /** Whether the dropzone is disabled */
+  disabled?: boolean;
 }
 
-const DropZone: React.FC<DropZoneProps> = ({ onFileSelect, selectedFile }) => {
-  const { isDarkMode } = useTheme()
-  const [isDragging, setIsDragging] = useState(false)
-  const [isAnimating, setIsAnimating] = useState(false)
+/**
+ * DropZone component for handling PDF file uploads
+ * Supports drag and drop as well as file selection
+ */
+const DropZone: React.FC<DropZoneProps> = ({ 
+  onFileSelect, 
+  selectedFile, 
+  disabled = false 
+}) => {
+  const { isDarkMode } = useTheme();
+  const [isDragging, setIsDragging] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
 
+  // Show animation when file is selected
   useEffect(() => {
     if (selectedFile) {
       setIsAnimating(true);
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         setIsAnimating(false);
       }, 800);
+      return () => clearTimeout(timer);
     }
   }, [selectedFile]);
 
+  /**
+   * Handle drag events
+   */
   const handleDrag = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
+    if (disabled) return;
+    
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (e.type === 'dragenter' || e.type === 'dragover') {
-      setIsDragging(true)
+      setIsDragging(true);
     } else if (e.type === 'dragleave') {
-      setIsDragging(false)
+      setIsDragging(false);
     }
-  }, [])
+  }, [disabled]);
 
+  /**
+   * Handle file drop
+   */
   const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragging(false)
+    if (disabled) return;
+    
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
 
-    const files = Array.from(e.dataTransfer.files)
-    const pdfFile = files.find(file => file.type === 'application/pdf')
+    const files = Array.from(e.dataTransfer.files);
+    const pdfFile = files.find(file => file.type === 'application/pdf');
     
     if (pdfFile) {
-      onFileSelect(pdfFile)
+      onFileSelect(pdfFile);
     }
-  }, [onFileSelect])
+  }, [onFileSelect, disabled]);
 
+  /**
+   * Handle file selection through input
+   */
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
+    if (disabled) return;
+    
+    const files = e.target.files;
     if (files && files[0]) {
-      onFileSelect(files[0])
+      onFileSelect(files[0]);
     }
-  }
+  };
 
+  /**
+   * Remove selected file
+   */
   const handleRemoveFile = (e: React.MouseEvent) => {
+    if (disabled) return;
+    
     e.stopPropagation();
     e.preventDefault();
     onFileSelect(null);
-  }
+  };
 
-  // Simple color classes based on state
+  // Theme-based color classes
   const bgClass = isDarkMode ? 'bg-gray-800' : 'bg-gray-50';
   const borderClass = isDarkMode ? 'border-gray-700' : 'border-gray-200';
   const textClass = isDarkMode ? 'text-gray-300' : 'text-gray-600';
@@ -86,7 +124,7 @@ const DropZone: React.FC<DropZoneProps> = ({ onFileSelect, selectedFile }) => {
         relative
         border border-dashed rounded-lg
         transition-all duration-200
-        cursor-pointer
+        ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}
         flex flex-col items-center justify-center
         h-28
         overflow-hidden
@@ -95,19 +133,23 @@ const DropZone: React.FC<DropZoneProps> = ({ onFileSelect, selectedFile }) => {
         ${isDragging ? 'scale-[1.01]' : ''}
       `}
     >
+      {/* Hidden file input */}
       <input
         type="file"
         accept=".pdf"
         onChange={handleFileSelect}
-        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+        disabled={disabled}
+        className={`absolute inset-0 w-full h-full opacity-0 ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'} z-10`}
       />
       
+      {/* Success animation */}
       {isAnimating && (
         <div className="absolute inset-0 flex items-center justify-center bg-green-500/5 z-20 animate-fadeIn">
           <FileCheck size={30} className="text-green-500 animate-pulse" />
         </div>
       )}
 
+      {/* Content: either selected file or upload prompt */}
       {selectedFile ? (
         <div className="flex items-center gap-3 px-4 py-2">
           <File size={20} className="text-green-500" />
@@ -123,15 +165,18 @@ const DropZone: React.FC<DropZoneProps> = ({ onFileSelect, selectedFile }) => {
         `}>
           <Upload 
             size={20} 
-            className={`${isDragging ? 'text-blue-500' : mutedTextClass}`} 
+            className={`
+              ${isDragging ? 'text-blue-500' : mutedTextClass}
+              ${disabled ? 'opacity-50' : ''}
+            `} 
           />
-          <span className={`text-xs ${textClass}`}>
-            {isDragging ? 'Drop PDF here' : 'Upload PDF'}
+          <span className={`text-xs ${textClass} ${disabled ? 'opacity-50' : ''}`}>
+            {isDragging ? 'Drop PDF here' : disabled ? 'Upload Disabled' : 'Upload PDF'}
           </span>
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default DropZone 
+export default DropZone; 
