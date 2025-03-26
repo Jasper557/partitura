@@ -13,7 +13,10 @@ import {
   Maximize2,
   ZoomIn,
   Download,
-  HelpCircle
+  HelpCircle,
+  MousePointer,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'
 import { Page } from '../types/index'
 import useScrollReset from '../hooks/useScrollReset'
@@ -164,15 +167,38 @@ const Documentation: React.FC<{
               </p>
               
               <Feature icon={<ZoomIn size={20} />} title="Zoom Controls">
-                Zoom in and out to view sheet music at different sizes. Use Ctrl++ and Ctrl+- keyboard shortcuts.
+                <p>Several options for zooming in and out:</p>
+                <ul className="list-disc pl-5 space-y-1 mt-1">
+                  <li>Use the zoom buttons in the header (+/-)</li>
+                  <li>Keyboard shortcuts: Ctrl++ (plus) and Ctrl+- (minus)</li>
+                  <li>Hold Ctrl while using mouse wheel to zoom in/out</li>
+                </ul>
+                <p className="mt-2">Visual feedback shows zoom percentage and displays helpful indicators when you reach minimum or maximum zoom levels.</p>
               </Feature>
               
-              <Feature icon={<Maximize2 size={20} />} title="Fullscreen">
-                Open the PDF in fullscreen mode for distraction-free viewing. Press F to toggle.
+              <Feature icon={<MousePointer size={20} />} title="Mouse Wheel Zoom">
+                Hold the Ctrl key while scrolling your mouse wheel to zoom in and out with precision. 
+                A subtle indicator appears during zooming to show your current zoom level.
+                This feature can be enabled or disabled in keyboard shortcut settings.
+              </Feature>
+              
+              <Feature icon={<ChevronLeft size={20} />} title="Page Navigation">
+                <p>Navigate through multi-page documents:</p>
+                <ul className="list-disc pl-5 space-y-1 mt-1">
+                  <li>Use the arrow buttons at the bottom of the viewer</li>
+                  <li>Keyboard shortcuts: Left Arrow for previous page, Right Arrow for next page</li>
+                </ul>
+                <p className="mt-2">The current page number and total pages are displayed at the bottom of the viewer.</p>
+              </Feature>
+              
+              <Feature icon={<Maximize2 size={20} />} title="Fullscreen Mode">
+                Open the PDF in fullscreen mode for distraction-free viewing. Press the fullscreen button
+                or use the keyboard shortcut (F) to toggle between normal and fullscreen views.
               </Feature>
               
               <Feature icon={<Download size={20} />} title="Download">
-                Download the current PDF to your device for offline use.
+                Download the current PDF to your device for offline use by clicking the download button
+                in the bottom toolbar.
               </Feature>
             </Subsection>
           </Section>
